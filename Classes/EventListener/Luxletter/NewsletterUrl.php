@@ -71,7 +71,7 @@ class NewsletterUrl
      */
     protected function getHtml(NewsletterUrlGetContentFromOriginEvent $event, int $targetPage): string
     {
-        $cacheIdentifier = 'p' . $targetPage;
+        $cacheIdentifier = 'p' . $targetPage . '-l' . $event->getNewsletterUrl()->getLanguage();
         if (ConfigurationUtility::isIndividualMailBodiesPerUserActivated()) {
             $cacheIdentifier .= '-u' . $event->getUser()->getUid();
         } elseif (ConfigurationUtility::isIndividualMailBodiesPerUsergroupActivated()) {
@@ -116,14 +116,16 @@ class NewsletterUrl
             $invokedBy
         );
 
-        // @TODO: language-Handling in URL (and cacheIdentifier)
-
         $typenum = LuxletterConfigurationUtility::getTypeNumToNumberLocation();
         if ($typenum > 0) {
-            $typenum = '&type=' . $typenum;
+            $typenum = '&type' . $typenum;
         }
         $url = (string)PreviewUriBuilder::create($targetPage)
-            ->withAdditionalQueryParameters('&byToken=' . $token . $typenum)
+            ->withAdditionalQueryParameters(
+                $typenum
+                . '&L=' . $event->getNewsletterUrl()->getLanguage()
+                . '&byToken=' . $token
+            )
             ->buildUri();
 
         if ($url === '') {
