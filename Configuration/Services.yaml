@@ -17,6 +17,8 @@ services:
     public: true
 
   In2code\In2luxletterContent\EventListener\Luxletter\NewsletterUrl:
+    arguments:
+      $cache: '@cache.in2luxlettercontent_bodytext'
     tags:
       - name: event.listener
         identifier: 'in2luxletterContent/getContentUsergroupSpecific'
@@ -33,3 +35,8 @@ services:
         identifier: 'in2luxletterContent/addUserToQueue'
         method: addUserToQueue
         event: In2code\Luxletter\Events\QueueServiceAddUserToQueueEvent
+
+  cache.in2luxlettercontent_bodytext:
+    class: TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
+    factory: ['@TYPO3\CMS\Core\Cache\CacheManager', 'getCache']
+    arguments: ['in2luxlettercontent_bodytext']

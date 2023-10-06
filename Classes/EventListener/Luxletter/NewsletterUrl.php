@@ -15,10 +15,21 @@ use In2code\Luxletter\Exception\InvalidUrlException;
 use In2code\Luxletter\Exception\MisconfigurationException;
 use In2code\Luxletter\Utility\ConfigurationUtility as LuxletterConfigurationUtility;
 use Throwable;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class NewsletterUrl
 {
+    /**
+     * @var FrontendInterface
+     */
+    private $cache;
+
+    public function __construct(FrontendInterface $cache)
+    {
+        $this->cache = $cache;
+    }
+
     public function getContentUserSpecific(NewsletterUrlGetContentFromOriginEvent $event)
     {
         if (
@@ -60,6 +71,36 @@ class NewsletterUrl
      */
     protected function getHtml(NewsletterUrlGetContentFromOriginEvent $event, int $targetPage): string
     {
+        $cacheIdentifier = 'p' . $targetPage;
+        if (ConfigurationUtility::isIndividualMailBodiesPerUserActivated()) {
+            $cacheIdentifier .= '-u' . $event->getUser()->getUid();
+        } elseif (ConfigurationUtility::isIndividualMailBodiesPerUsergroupActivated()) {
+            $usergroupUids = [];
+            foreach ($event->getUser()->getUsergroup() as $usergroup) {
+                $usergroupUids[] = $usergroup->getUid();
+            }
+            sort($usergroupUids);
+            $cacheIdentifier .= '-ug' . implode('_', $usergroupUids);
+        }
+
+        if (($string = $this->cache->get($cacheIdentifier)) === false) {
+            $tags = ['in2luxletter_content', 'pageId_' . $targetPage];
+            $lifetime = 60 * 60 * 24;
+
+            $string = $this->getUncachedHtml($event, $targetPage);
+
+            $this->cache->set($cacheIdentifier, $string, $tags, $lifetime);
+        }
+        return $string;
+    }
+
+    /**
+     * @param NewsletterUrlGetContentFromOriginEvent $event
+     * @param int $targetPage
+     * @return string
+     */
+    protected function getUncachedHtml(NewsletterUrlGetContentFromOriginEvent $event, int $targetPage): string
+    {
         $tokenGenerator = GeneralUtility::makeInstance(TokenGenerator::class);
         $tokenRepository = GeneralUtility::makeInstance(TokenRepository::class);
 
@@ -75,7 +116,7 @@ class NewsletterUrl
             $invokedBy
         );
 
-        // @TODO: language-Handling in URL
+        // @TODO: language-Handling in URL (and cacheIdentifier)
 
         $typenum = LuxletterConfigurationUtility::getTypeNumToNumberLocation();
         if ($typenum > 0) {
@@ -98,7 +139,6 @@ class NewsletterUrl
                 1560709791
             );
         }
-
         return HtmlUtility::getBodyFromHtml($string);
     }
 }
