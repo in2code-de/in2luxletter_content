@@ -1,0 +1,2 @@
+# cat=mail//280; type=options[Disabled=disabled,Per user=user,Group-based=group]; label= Generate individual Mailbodies: When there is content that is restricted by usergroups, with this option all usergroups of the FE-User is handed over by GET Parameter and the bodytext is stored for each queue entry, only works with "asynchronousQueueStorage"
+individualMailBodies = disabled

@@ -1,0 +1,35 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  In2code\In2luxletterContent\:
+    resource: '../Classes/*'
+
+  In2code\In2luxletterContent\Repository\LoginLinkRepository:
+    public: true
+
+  In2code\In2luxletterContent\Service\TokenGenerator:
+    public: true
+
+  In2code\In2luxletterContent\Service\Validation:
+    public: true
+
+  In2code\In2luxletterContent\EventListener\Luxletter\NewsletterUrl:
+    tags:
+      - name: event.listener
+        identifier: 'in2luxletterContent/getContentUsergroupSpecific'
+        method: getContentUsergroupSpecific
+        event: In2code\Luxletter\Events\NewsletterUrlGetContentFromOriginEvent
+      - name: event.listener
+        identifier: 'in2luxletterContent/getContentUserSpecific'
+        method: getContentUserSpecific
+        event: In2code\Luxletter\Events\NewsletterUrlGetContentFromOriginEvent
+
+  In2code\In2luxletterContent\EventListener\Luxletter\QueueService:
+    tags:
+      - name: event.listener
+        identifier: 'in2luxletterContent/addUserToQueue'
+        method: addUserToQueue
+        event: In2code\Luxletter\Events\QueueServiceAddUserToQueueEvent
