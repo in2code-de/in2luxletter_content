@@ -118,7 +118,7 @@ class NewsletterUrl
 
         $typenum = LuxletterConfigurationUtility::getTypeNumToNumberLocation();
         if ($typenum > 0) {
-            $typenum = '&type' . $typenum;
+            $typenum = '&type=' . $typenum;
         }
         $url = (string)PreviewUriBuilder::create($targetPage)
             ->withAdditionalQueryParameters(
